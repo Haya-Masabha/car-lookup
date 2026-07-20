@@ -1,0 +1,17 @@
+services:
+  web:
+    build: .
+    image: carlookup:latest
+    container_name: carlookup
+    ports:
+      # Host 8080 -> container 8080. On the AWS instance this is published on 80 instead.
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 3s
+      start_period: 10s
+      retries: 3
