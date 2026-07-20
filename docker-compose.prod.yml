@@ -1,0 +1,7 @@
+# Overrides for the AWS EC2 host: serve on the standard HTTP port.
+# Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+services:
+  web:
+    ports:
+      - "80:8080"
+    restart: always
