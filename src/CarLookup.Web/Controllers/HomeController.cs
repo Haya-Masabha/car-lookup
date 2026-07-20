@@ -1,6 +1,6 @@
 using System.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
 using CarLookup.Web.Models;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CarLookup.Web.Controllers;
 
@@ -8,12 +8,15 @@ public class HomeController : Controller
 {
     public IActionResult Index()
     {
-        return View();
-    }
+        var latestYear = DateTime.UtcNow.Year + 1;
 
-    public IActionResult Privacy()
-    {
-        return View();
+        return View(new LookupViewModel
+        {
+            Years = Enumerable
+                .Range(VehiclesController.EarliestModelYear, latestYear - VehiclesController.EarliestModelYear + 1)
+                .Reverse()
+                .ToList()
+        });
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

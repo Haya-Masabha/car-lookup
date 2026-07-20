@@ -1,8 +1,77 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model CarLookup.Web.Models.LookupViewModel
+@{
+    ViewData["Title"] = "Find a vehicle";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="page-intro">
+    <h1>Find vehicle types and models</h1>
+    <p>Pick a car make and a model year to see which vehicle types that manufacturer builds and which models it offered that year.</p>
 </div>
+
+<form id="lookup-form" class="lookup-card" novalidate>
+    <div class="row g-3">
+        <div class="col-12 col-lg-5">
+            <label class="form-label" for="make-input">Make</label>
+            <div class="combobox">
+                <input id="make-input"
+                       class="form-control"
+                       type="text"
+                       autocomplete="off"
+                       spellcheck="false"
+                       placeholder="Start typing, e.g. Honda"
+                       role="combobox"
+                       aria-expanded="false"
+                       aria-autocomplete="list"
+                       aria-controls="make-options" />
+                <ul id="make-options" class="combobox-options" role="listbox" hidden></ul>
+            </div>
+            <div class="form-text">Over 12,000 manufacturers are available — type to narrow the list.</div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <label class="form-label" for="year-select">Model year</label>
+            <select id="year-select" class="form-select">
+                @foreach (var year in Model.Years)
+                {
+                    <option value="@year">@year</option>
+                }
+            </select>
+        </div>
+
+        <div class="col-6 col-lg-4">
+            <label class="form-label" for="type-select">Vehicle type <span class="label-optional">(optional)</span></label>
+            <select id="type-select" class="form-select" disabled>
+                <option value="">All types</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="lookup-actions">
+        <button id="search-button" class="btn btn-primary" type="submit" disabled>Show vehicles</button>
+        <button id="reset-button" class="btn btn-link" type="button">Clear</button>
+    </div>
+</form>
+
+<div id="status" class="status" role="status" aria-live="polite"></div>
+
+<section id="results" class="results" hidden>
+    <article class="result-panel">
+        <header>
+            <h2>Vehicle types</h2>
+            <p id="types-caption" class="result-caption"></p>
+        </header>
+        <div id="types-list" class="chip-list"></div>
+    </article>
+
+    <article class="result-panel">
+        <header>
+            <h2>Models</h2>
+            <p id="models-caption" class="result-caption"></p>
+        </header>
+        <div id="models-list" class="model-grid"></div>
+    </article>
+</section>
+
+@section Scripts {
+    <script src="~/js/car-lookup.js" asp-append-version="true"></script>
+}
