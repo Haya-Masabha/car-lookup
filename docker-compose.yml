@@ -1,17 +1,38 @@
 services:
-  web:
-    build: .
-    image: carlookup:latest
-    container_name: carlookup
-    ports:
-      # Host 8080 -> container 8080. On the AWS instance this is published on 80 instead.
-      - "8080:8080"
+  api:
+    build:
+      context: .
+      dockerfile: src/CarLookup.Api/Dockerfile
+    image: carlookup-api:latest
+    container_name: carlookup-api
     environment:
       ASPNETCORE_ENVIRONMENT: Production
+    ports:
+      # Exposed so the API can be exercised directly; the browser goes through nginx.
+      - "5000:8080"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/health"]
       interval: 30s
       timeout: 3s
       start_period: 10s
+      retries: 3
+
+  web:
+    build:
+      context: ./src/carlookup-web
+    image: carlookup-web:latest
+    container_name: carlookup-web
+    ports:
+      # Host 8080 -> nginx. On the AWS instance this is published on 80 instead.
+      - "8080:80"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 3s
+      start_period: 5s
       retries: 3

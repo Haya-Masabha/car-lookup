@@ -1,0 +1,33 @@
+<div class="combobox">
+  <input
+    id="make-input"
+    type="text"
+    class="control"
+    role="combobox"
+    aria-autocomplete="list"
+    aria-controls="make-options"
+    [attr.aria-expanded]="open() && suggestions().length > 0"
+    autocomplete="off"
+    spellcheck="false"
+    placeholder="Start typing, e.g. Honda"
+    [value]="query()"
+    (input)="onInput($any($event.target).value)"
+    (keydown)="onKeydown($event)"
+    (focus)="open.set(true)"
+    (blur)="onBlur()" />
+
+  @if (open() && suggestions().length > 0) {
+    <ul id="make-options" class="options" role="listbox">
+      @for (make of suggestions(); track make.makeId; let i = $index) {
+        <li
+          class="option"
+          role="option"
+          [class.is-active]="i === activeIndex()"
+          [attr.aria-selected]="i === activeIndex()"
+          (mousedown)="$event.preventDefault(); select(make)">
+          {{ make.makeName }}
+        </li>
+      }
+    </ul>
+  }
+</div>

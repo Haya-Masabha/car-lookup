@@ -1,0 +1,32 @@
+.combobox {
+  position: relative;
+}
+
+.options {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 28px rgb(16 32 64 / 14%);
+  left: 0;
+  list-style: none;
+  margin: 0.25rem 0 0;
+  max-height: 17rem;
+  overflow-y: auto;
+  padding: 0.25rem;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  z-index: 20;
+}
+
+.option {
+  border-radius: 8px;
+  cursor: pointer;
+  padding: 0.45rem 0.6rem;
+}
+
+.option:hover,
+.option.is-active {
+  background: var(--accent-soft);
+  color: var(--accent);
+}

@@ -1,7 +1,12 @@
-# Overrides for the AWS EC2 host: serve on the standard HTTP port.
+# Overrides for the AWS EC2 host: serve the app on the standard HTTP port and keep the
+# API off the public internet, reachable only through the nginx proxy.
 # Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 services:
+  api:
+    ports: !reset []
+    restart: always
+
   web:
     ports:
-      - "80:8080"
+      - "80:80"
     restart: always

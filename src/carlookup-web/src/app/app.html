@@ -1,0 +1,116 @@
+<header class="app-header">
+  <div class="shell">
+    <span class="brand"><span aria-hidden="true">&#128663;</span> Car Lookup</span>
+    <span class="brand-note">Data: NHTSA vPIC</span>
+  </div>
+</header>
+
+<main class="shell">
+  <div class="intro">
+    <h1>Find vehicle types and models</h1>
+    <p>
+      Pick a car make and a model year to see which vehicle types that manufacturer builds and
+      which models it offered that year.
+    </p>
+  </div>
+
+  <form class="panel lookup" (ngSubmit)="search()">
+    <div class="fields">
+      <div class="field field-make">
+        <label for="make-input">Make</label>
+        <app-make-picker (makeSelected)="onMakeSelected($event)" />
+        <p class="hint">Over 12,000 manufacturers are available &mdash; type to narrow the list.</p>
+      </div>
+
+      <div class="field">
+        <label for="year-select">Model year</label>
+        <select
+          id="year-select"
+          class="control"
+          [value]="year()"
+          (change)="year.set(+$any($event.target).value)">
+          @for (option of years(); track option) {
+            <option [value]="option">{{ option }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="type-select">Vehicle type <span class="optional">(optional)</span></label>
+        <select
+          id="type-select"
+          class="control"
+          [value]="vehicleType()"
+          [disabled]="availableTypes().length === 0"
+          (change)="vehicleType.set($any($event.target).value)">
+          <option value="">All types</option>
+          @for (type of availableTypes(); track type.vehicleTypeId) {
+            <option [value]="type.vehicleTypeName">{{ type.vehicleTypeName }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="submit" class="button primary" [disabled]="!selectedMake() || loading()">
+        {{ loading() ? 'Searching…' : 'Show vehicles' }}
+      </button>
+      <button type="button" class="button link" (click)="reset()">Clear</button>
+    </div>
+  </form>
+
+  @if (error(); as message) {
+    <p class="notice error" role="alert">{{ message }}</p>
+  }
+
+  @if (searched(); as criteria) {
+    <section class="results">
+      <article class="panel">
+        <h2>Vehicle types</h2>
+        <p class="caption">
+          @if (types().length === 0) {
+            vPIC lists no vehicle types for {{ criteria.make }}.
+          } @else {
+            {{ criteria.make }} builds {{ types().length }}
+            {{ types().length === 1 ? 'vehicle type' : 'vehicle types' }}.
+          }
+        </p>
+        <div class="chips">
+          @for (type of types(); track type.vehicleTypeId) {
+            <span class="chip">{{ type.vehicleTypeName }}</span>
+          }
+        </div>
+      </article>
+
+      <article class="panel">
+        <h2>Models</h2>
+        <p class="caption">
+          @if (models().length === 0) {
+            No {{ criteria.type }} models found for {{ criteria.make }} in {{ criteria.year }}.
+          } @else {
+            {{ models().length }} {{ criteria.type }}
+            {{ models().length === 1 ? 'model' : 'models' }}
+            for {{ criteria.make }} in {{ criteria.year }}.
+          }
+        </p>
+        <div class="model-grid">
+          @for (model of models(); track model.modelId) {
+            <div class="model">
+              <span class="model-name">{{ model.modelName }}</span>
+              @if (model.vehicleTypeName) {
+                <span class="model-type">{{ model.vehicleTypeName }}</span>
+              }
+            </div>
+          }
+        </div>
+      </article>
+    </section>
+  }
+</main>
+
+<footer class="app-footer">
+  <div class="shell">
+    Vehicle data provided by the
+    <a href="https://vpic.nhtsa.dot.gov/api/" target="_blank" rel="noopener">NHTSA vPIC API</a>.
+  </div>
+</footer>

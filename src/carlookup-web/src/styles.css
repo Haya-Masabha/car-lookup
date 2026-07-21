@@ -1,0 +1,52 @@
+:root {
+  --surface: #ffffff;
+  --page: #f4f6fa;
+  --ink: #16202f;
+  --ink-muted: #5c6b80;
+  --line: #dfe4ed;
+  --accent: #1d4ed8;
+  --accent-soft: #eaf0ff;
+  --danger: #b42318;
+  --danger-soft: #fdeceb;
+  --radius: 12px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  background: var(--page);
+  color: var(--ink);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* Shared form control styling, used by the page and by the make picker. */
+.control {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: inherit;
+  font: inherit;
+  padding: 0.5rem 0.7rem;
+  width: 100%;
+}
+
+.control:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgb(29 78 216 / 18%);
+  outline: none;
+}
+
+.control:disabled {
+  background: #f2f4f8;
+  color: var(--ink-muted);
+}

@@ -1,15 +1,17 @@
+# Build context is the repository root: docker build -f src/CarLookup.Api/Dockerfile .
+
 # ---- build ----------------------------------------------------------------
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /source
 
 # Copy only the project files first so `restore` is cached until a dependency changes.
 COPY CarLookup.slnx .
-COPY src/CarLookup.Web/CarLookup.Web.csproj src/CarLookup.Web/
+COPY src/CarLookup.Api/CarLookup.Api.csproj src/CarLookup.Api/
 COPY tests/CarLookup.Tests/CarLookup.Tests.csproj tests/CarLookup.Tests/
 RUN dotnet restore
 
-COPY . .
-RUN dotnet publish src/CarLookup.Web/CarLookup.Web.csproj \
+COPY src/CarLookup.Api/ src/CarLookup.Api/
+RUN dotnet publish src/CarLookup.Api/CarLookup.Api.csproj \
     --configuration Release \
     --no-restore \
     --output /app
@@ -34,4 +36,4 @@ USER $APP_UID
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
     CMD curl --fail --silent http://localhost:8080/health || exit 1
 
-ENTRYPOINT ["dotnet", "CarLookup.Web.dll"]
+ENTRYPOINT ["dotnet", "CarLookup.Api.dll"]

@@ -1,0 +1,207 @@
+.shell {
+  margin: 0 auto;
+  max-width: 68rem;
+  padding: 0 1.25rem;
+  width: 100%;
+}
+
+/* Header and footer ------------------------------------------------------ */
+
+.app-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  padding: 0.85rem 0;
+}
+
+.app-header .shell {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.brand {
+  font-size: 1.15rem;
+  font-weight: 650;
+}
+
+.brand-note {
+  color: var(--ink-muted);
+  font-size: 0.85rem;
+}
+
+.app-footer {
+  border-top: 1px solid var(--line);
+  color: var(--ink-muted);
+  font-size: 0.85rem;
+  margin-top: 2.5rem;
+  padding: 1.1rem 0;
+}
+
+.app-footer a {
+  color: var(--accent);
+}
+
+/* Page ------------------------------------------------------------------- */
+
+main {
+  display: block;
+  padding-bottom: 1rem;
+  padding-top: 2rem;
+}
+
+.intro h1 {
+  font-size: 1.65rem;
+  margin: 0 0 0.35rem;
+}
+
+.intro p {
+  color: var(--ink-muted);
+  margin: 0 0 1.5rem;
+  max-width: 60ch;
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 1.35rem;
+}
+
+/* Lookup form ------------------------------------------------------------ */
+
+.fields {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+}
+
+.field-make {
+  grid-column: span 2;
+}
+
+.field label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+.optional {
+  color: var(--ink-muted);
+  font-weight: 400;
+}
+
+.hint {
+  color: var(--ink-muted);
+  font-size: 0.8rem;
+  margin: 0.35rem 0 0;
+}
+
+.actions {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+
+.button {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 550;
+  padding: 0.5rem 1.1rem;
+}
+
+.button.primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+.button.primary:disabled {
+  background: #aebbd6;
+  cursor: not-allowed;
+}
+
+.button.link {
+  background: none;
+  color: var(--ink-muted);
+}
+
+.button.link:hover {
+  color: var(--ink);
+}
+
+/* Feedback and results --------------------------------------------------- */
+
+.notice {
+  border-radius: var(--radius);
+  margin-top: 1rem;
+  padding: 0.7rem 0.9rem;
+}
+
+.notice.error {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+.results {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.results h2 {
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.caption {
+  color: var(--ink-muted);
+  font-size: 0.875rem;
+  margin: 0.15rem 0 1rem;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chip {
+  background: var(--accent-soft);
+  border-radius: 999px;
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 550;
+  padding: 0.35rem 0.8rem;
+}
+
+.model-grid {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+}
+
+.model {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  padding: 0.65rem 0.8rem;
+}
+
+.model-name {
+  font-weight: 600;
+}
+
+.model-type {
+  color: var(--ink-muted);
+  font-size: 0.8rem;
+}
+
+@media (max-width: 640px) {
+  .field-make {
+    grid-column: span 1;
+  }
+}
