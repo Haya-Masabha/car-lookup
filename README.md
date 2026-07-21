@@ -6,6 +6,11 @@ A full-stack web application that lets you pick a **car make** and a **model yea
 **Angular 21** front end, **ASP.NET Core 10** Web API, both containerised and served behind nginx.
 All vehicle data comes from the public [NHTSA vPIC API](https://vpic.nhtsa.dot.gov/api/).
 
+### ▶ Live demo: **http://3.122.193.216**
+
+Running on an AWS EC2 instance in `eu-central-1`. Plain HTTP — no TLS certificate is configured,
+so use `http://` rather than `https://`.
+
 ---
 
 ## Contents
