@@ -1,7 +1,8 @@
 # Deploying Car Lookup to AWS (free tier)
 
-The application is deployed as a Docker container on a single **EC2** virtual machine — the
-smallest, cheapest way to host a container on AWS, and the one covered by the free tier.
+Both containers — the Angular front end behind nginx and the ASP.NET Core API — run on a single
+**EC2** virtual machine, the smallest and cheapest way to host containers on AWS and the one
+covered by the free tier.
 
 > **Before you start.** Two habits keep this free:
 > 1. A **zero-spend budget** (Billing and Cost Management → Budgets) so AWS emails you the moment
@@ -81,17 +82,20 @@ cd <your-repo>
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 ```
 
-The first build takes a few minutes on a `t3.micro`: it downloads the .NET SDK image and compiles
-the app. Watch it finish, then confirm the container is healthy:
+The first build takes several minutes on a `t3.micro`: it downloads the .NET SDK and Node images,
+compiles the API and bundles the Angular app. Watch it finish, then confirm both containers are
+healthy:
 
 ```bash
 docker compose ps
-curl -i http://localhost/health
+curl -i http://localhost/health          # nginx
+curl -s http://localhost/api/vehicles/years | head -c 80   # API through the proxy
 ```
 
-You want `Up … (healthy)` and `HTTP/1.1 200 OK`.
+You want `Up … (healthy)` for both services and `HTTP/1.1 200 OK`.
 
-> **If the build is killed part-way through**, the instance ran out of memory (`t3.micro` has 1 GB).
+> **If the build is killed part-way through**, the instance ran out of memory (`t3.micro` has 1 GB,
+> and bundling Angular is the memory-hungry step).
 > Add swap once and rebuild:
 >
 > ```bash
@@ -112,8 +116,9 @@ http://<public-ip>
 
 Use `http://`, not `https://` — no TLS certificate is configured.
 
-`restart: always` in `docker-compose.prod.yml` means the container comes back by itself whenever
-Docker or the instance restarts.
+`restart: always` in `docker-compose.prod.yml` means both containers come back by themselves
+whenever Docker or the instance restarts. That file also stops publishing the API's own port, so
+the only way in from the internet is through nginx on port 80.
 
 ---
 
@@ -141,11 +146,15 @@ disk still is, and the public IP changes on the next start.
 
 ## Design notes
 
-**Why EC2 rather than something more managed?** App Runner and ECS Fargate would each host this
-container with less setup, but neither is covered by the free tier. A single EC2 instance running
+**Why EC2 rather than something more managed?** App Runner and ECS Fargate would each host these
+containers with less setup, but neither is covered by the free tier. A single EC2 instance running
 `docker compose` is the cheapest option that still demonstrates a real container deployment.
+
+**Why serve the SPA from nginx instead of from the API?** Keeping them separate means each tier
+scales and deploys on its own, nginx does the static-file serving it is good at, and the proxy
+makes every browser request same-origin — so there is no CORS configuration in production.
 
 **Why build on the instance rather than push an image?** It keeps the deployment to one `git pull`
 and avoids needing a container registry. For anything beyond a demo, the better shape is to build
-the image in CI, push it to ECR, and have the instance pull a tagged image — that removes the SDK
-and the source tree from the server entirely.
+both images in CI, push them to ECR, and have the instance pull tagged images — that removes the
+SDK, Node and the source tree from the server entirely.

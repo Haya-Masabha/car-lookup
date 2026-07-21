@@ -1,21 +1,21 @@
 # Car Lookup
 
-A small ASP.NET Core web application that lets you pick a **car make** and a **model year**, then
-shows the **vehicle types** that manufacturer builds and the **models** it offered that year.
+A full-stack web application that lets you pick a **car make** and a **model year**, then shows the
+**vehicle types** that manufacturer builds and the **models** it offered that year.
 
-All vehicle data comes from the public
-[NHTSA vPIC API](https://vpic.nhtsa.dot.gov/api/).
+**Angular 21** front end, **ASP.NET Core 10** Web API, both containerised and served behind nginx.
+All vehicle data comes from the public [NHTSA vPIC API](https://vpic.nhtsa.dot.gov/api/).
 
 ---
 
 ## Contents
 
 - [What it does](#what-it-does)
-- [How it is built](#how-it-is-built)
-- [Run it locally with Docker](#run-it-locally-with-docker) — the quickest way
-- [Run it locally with the .NET SDK](#run-it-locally-with-the-net-sdk)
+- [Architecture](#architecture)
+- [Run it with Docker](#run-it-with-docker) — the quickest way
+- [Run it for development](#run-it-for-development)
 - [Running the tests](#running-the-tests)
-- [Internal API](#internal-api)
+- [API reference](#api-reference)
 - [Deploying to AWS free tier](#deploying-to-aws-free-tier)
 - [Configuration](#configuration)
 
@@ -23,43 +23,58 @@ All vehicle data comes from the public
 
 ## What it does
 
-1. You start typing a make. vPIC publishes **over 12,000 makes**, which is far too many for a
-   dropdown, so the app searches server-side and returns a short ranked list (exact match first,
-   then names that start with what you typed, then names that contain it).
+1. You start typing a make. vPIC publishes **over 12,000 makes**, far too many for a dropdown, so
+   the API searches server-side and returns a short ranked list — exact match first, then names
+   that start with the term, then names that contain it.
 2. Picking a make loads the **vehicle types** that manufacturer builds.
 3. Choosing a model year — and optionally narrowing to one vehicle type — lists the matching
    **models**.
 
-## How it is built
+## Architecture
+
+```
+browser
+   │
+   ▼
+┌──────────────────────────┐     /api/*      ┌──────────────────────────┐      ┌────────────┐
+│  web container           │ ──────────────► │  api container           │ ───► │ NHTSA vPIC │
+│  nginx + Angular bundle  │                 │  ASP.NET Core Web API    │      └────────────┘
+└──────────────────────────┘                 └──────────────────────────┘
+```
+
+nginx serves the compiled Angular bundle and reverse-proxies `/api` to the API container, so the
+browser only ever talks to one origin and production needs no CORS configuration.
 
 | Concern | Choice |
 | --- | --- |
-| Framework | ASP.NET Core 10 MVC |
+| Front end | Angular 21 standalone components, signals for state, RxJS for debounced search |
+| Back end | ASP.NET Core 10 Web API, OpenAPI description in development |
 | Upstream calls | Typed `HttpClient` with retry, timeout and circuit breaker (`Microsoft.Extensions.Http.Resilience`) |
 | Caching | `IMemoryCache` decorator around the catalog service — makes for 24 h, per-make lookups for 1 h |
-| Front end | Razor view plus dependency-free JavaScript (debounced, keyboard-navigable combobox) |
-| Tests | xUnit, 22 tests, no network access required |
-| Container | Multi-stage Dockerfile, non-root user, `/health` health check |
+| Tests | 22 xUnit tests, 10 Vitest tests, none needing network access |
+| Containers | One image per tier, non-root API, health checks on both |
 
 ```
-src/CarLookup.Web
-├── Controllers/     VehiclesController (JSON API) and HomeController (page)
-├── Services/        vPIC HTTP client, caching decorator, make ranking
-├── Models/          domain records and the vPIC wire contracts
-├── Infrastructure/  maps upstream outages onto a 503 response
-└── wwwroot/         css/site.css and js/car-lookup.js
-tests/CarLookup.Tests
-```
+src/CarLookup.Api            ASP.NET Core Web API
+├── Controllers/             VehiclesController
+├── Services/                vPIC client, caching decorator, make ranking
+├── Models/                  domain records and vPIC wire contracts
+└── Infrastructure/          maps upstream outages onto a 503 response
 
-The browser never calls vPIC directly. Routing every call through the app means responses can be
-cached, the upstream contract lives in one place, and the app does not depend on vPIC's CORS policy.
+src/carlookup-web            Angular application
+├── src/app/vehicle-catalog.ts   typed API client
+├── src/app/make-picker/         debounced type-ahead component
+└── nginx.conf                   static hosting plus the /api proxy
+
+tests/CarLookup.Tests        backend test suite
+```
 
 ---
 
-## Run it locally with Docker
+## Run it with Docker
 
 **Prerequisite:** [Docker Desktop](https://www.docker.com/products/docker-desktop/) (or Docker
-Engine on Linux). Nothing else — you do not need the .NET SDK.
+Engine on Linux). Nothing else — you need neither the .NET SDK nor Node.js.
 
 ```bash
 git clone https://github.com/<your-account>/<your-repo>.git
@@ -69,51 +84,68 @@ docker compose up --build
 
 Then open **<http://localhost:8080>**.
 
-To stop it:
+The first build takes a few minutes while it downloads the .NET SDK and Node images. When both
+containers report `healthy` the app is ready. The API is also published on
+<http://localhost:5000> so it can be called directly.
+
+To stop everything:
 
 ```bash
 docker compose down
 ```
 
-<details>
-<summary>Without Docker Compose</summary>
-
-```bash
-docker build -t carlookup:latest .
-docker run --rm -p 8080:8080 carlookup:latest
-```
-
-</details>
-
 ---
 
-## Run it locally with the .NET SDK
+## Run it for development
 
-**Prerequisite:** [.NET 10 SDK](https://dotnet.microsoft.com/download).
+Useful when you want hot reload. Run the two tiers in **separate terminals**.
+
+**Prerequisites:** [.NET 10 SDK](https://dotnet.microsoft.com/download) and
+[Node.js 22.12+](https://nodejs.org/).
+
+Terminal 1 — the API:
 
 ```bash
-git clone https://github.com/<your-account>/<your-repo>.git
-cd <your-repo>
-dotnet run --project src/CarLookup.Web
+dotnet run --project src/CarLookup.Api
 ```
 
-The console prints the URL it is listening on (by default `http://localhost:5122`).
+It listens on `http://localhost:5122`.
+
+Terminal 2 — the Angular dev server:
+
+```bash
+cd src/carlookup-web
+npm install
+npm start
+```
+
+Open **<http://localhost:4200>**. The dev server proxies `/api` to the API
+(`src/carlookup-web/proxy.conf.json`), so the front-end code is identical in development and in
+production.
 
 ---
 
 ## Running the tests
 
+Backend (22 tests):
+
 ```bash
 dotnet test
 ```
 
-The suite runs entirely offline: upstream responses are served by a stub `HttpMessageHandler`.
+Front end (10 tests):
+
+```bash
+cd src/carlookup-web
+npm test
+```
+
+Both suites run offline — upstream responses are served by a stub `HttpMessageHandler` on the
+backend and by `HttpTestingController` on the front end.
 
 ---
 
-## Internal API
-
-The page is driven by these endpoints, which are also usable on their own:
+## API reference
 
 | Method | Route | Purpose |
 | --- | --- | --- |
@@ -126,7 +158,7 @@ The page is driven by these endpoints, which are also usable on their own:
 Example:
 
 ```bash
-curl "http://localhost:8080/api/vehicles/makes/474/models?year=2015&vehicleType=Truck"
+curl "http://localhost:5000/api/vehicles/makes/474/models?year=2015&vehicleType=Truck"
 ```
 
 ```json
@@ -134,7 +166,8 @@ curl "http://localhost:8080/api/vehicles/makes/474/models?year=2015&vehicleType=
 ```
 
 Invalid input returns an RFC 7807 problem response (`400`), and an upstream vPIC outage returns
-`503` rather than an error page.
+`503` rather than an error page. In development the OpenAPI description is served at
+`/openapi/v1.json`.
 
 ---
 
@@ -146,8 +179,8 @@ See **[docs/aws-deployment.md](docs/aws-deployment.md)** for the full step-by-st
 
 ## Configuration
 
-Settings live under the `Vpic` section of `appsettings.json` and can be overridden with environment
-variables, which is how they are set in Docker and on the server:
+API settings live under the `Vpic` section of `appsettings.json` and can be overridden with
+environment variables, which is how they are set in Docker and on the server:
 
 | Setting | Environment variable | Default |
 | --- | --- | --- |
@@ -155,3 +188,7 @@ variables, which is how they are set in Docker and on the server:
 | Upstream timeout | `Vpic__Timeout` | `00:00:30` |
 | Make list cache lifetime | `Vpic__MakesCacheDuration` | `24:00:00` |
 | Per-make lookup cache lifetime | `Vpic__LookupCacheDuration` | `01:00:00` |
+
+`Cors__AllowedOrigins__0` allows an origin to call the API cross-site. It is set to
+`http://localhost:4200` in development only; in Docker the nginx proxy makes requests same-origin,
+so no origin is allowed by default.
