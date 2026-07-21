@@ -54,16 +54,26 @@ sudo systemctl enable --now docker
 sudo usermod -aG docker ec2-user
 ```
 
-Install the Compose plugin. Amazon Linux's Docker package does not look in
-`/usr/local/lib/docker/cli-plugins`, so install it into the user plugin directory, which is always
+Amazon Linux's Docker package ships neither Compose nor buildx, and it does not search
+`/usr/local/lib/docker/cli-plugins`. Install both into the user plugin directory, which is always
 searched and needs no `sudo`:
 
 ```bash
 mkdir -p ~/.docker/cli-plugins
+
+# Compose
 curl -sSL \
   "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64" \
   -o ~/.docker/cli-plugins/docker-compose
 chmod +x ~/.docker/cli-plugins/docker-compose
+
+# buildx — Compose delegates image building to it and refuses to build without it
+BUILDX_VER=$(curl -s https://api.github.com/repos/docker/buildx/releases/latest \
+  | grep -oP '"tag_name": "\K[^"]+')
+curl -sSL \
+  "https://github.com/docker/buildx/releases/download/${BUILDX_VER}/buildx-${BUILDX_VER}.linux-amd64" \
+  -o ~/.docker/cli-plugins/docker-buildx
+chmod +x ~/.docker/cli-plugins/docker-buildx
 ```
 
 The `usermod` line only takes effect on a new login, so **close the browser terminal and connect
@@ -72,6 +82,7 @@ again**. Then check both tools answer:
 ```bash
 docker version
 docker compose version
+docker buildx version
 ```
 
 > **If pasting mangles the command** — the browser terminal wraps pastes in escape codes and bash
