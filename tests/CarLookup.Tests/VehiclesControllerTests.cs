@@ -1,6 +1,6 @@
-using CarLookup.Web.Controllers;
-using CarLookup.Web.Models;
-using CarLookup.Web.Services;
+using CarLookup.Api.Controllers;
+using CarLookup.Api.Models;
+using CarLookup.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CarLookup.Tests;

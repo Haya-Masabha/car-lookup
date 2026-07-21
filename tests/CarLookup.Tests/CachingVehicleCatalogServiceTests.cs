@@ -1,5 +1,5 @@
-using CarLookup.Web.Models;
-using CarLookup.Web.Services;
+using CarLookup.Api.Models;
+using CarLookup.Api.Services;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 

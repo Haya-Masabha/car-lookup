@@ -1,5 +1,5 @@
 using System.Net;
-using CarLookup.Web.Services;
+using CarLookup.Api.Services;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace CarLookup.Tests;
