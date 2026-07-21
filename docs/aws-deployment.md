@@ -27,7 +27,7 @@ Estimated time: about 20 minutes.
    | Amazon Machine Image | **Amazon Linux 2023** (free-tier eligible) |
    | Instance type | **t3.micro** (or `t2.micro` if that is the free-tier type in your region) |
    | Key pair | *Proceed without a key pair* — you will connect through the browser |
-   | Network settings | Tick **Allow HTTP traffic from the internet** |
+   | Network settings | Tick **Allow HTTP traffic from the internet**, and leave **Allow SSH traffic from** ticked — the browser terminal connects over SSH, so port 22 must stay open |
    | Storage | Leave the default 8 GiB gp3 |
 
 4. **Launch instance**, then open the instance and wait until *Instance state* is **Running** and
