@@ -77,8 +77,8 @@ docker compose version
 ## 4. Deploy the application
 
 ```bash
-git clone https://github.com/<your-account>/<your-repo>.git
-cd <your-repo>
+git clone https://github.com/Haya-Masabha/car-lookup.git
+cd car-lookup
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 ```
 
@@ -125,7 +125,7 @@ the only way in from the internet is through nginx on port 80.
 ## 6. Shipping an update
 
 ```bash
-cd <your-repo>
+cd car-lookup
 git pull
 docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 ```

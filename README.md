@@ -77,8 +77,8 @@ tests/CarLookup.Tests        backend test suite
 Engine on Linux). Nothing else — you need neither the .NET SDK nor Node.js.
 
 ```bash
-git clone https://github.com/<your-account>/<your-repo>.git
-cd <your-repo>
+git clone https://github.com/Haya-Masabha/car-lookup.git
+cd car-lookup
 docker compose up --build
 ```
 
