@@ -54,14 +54,16 @@ sudo systemctl enable --now docker
 sudo usermod -aG docker ec2-user
 ```
 
-Install the Compose plugin:
+Install the Compose plugin. Amazon Linux's Docker package does not look in
+`/usr/local/lib/docker/cli-plugins`, so install it into the user plugin directory, which is always
+searched and needs no `sudo`:
 
 ```bash
-sudo mkdir -p /usr/local/lib/docker/cli-plugins
-sudo curl -sSL \
+mkdir -p ~/.docker/cli-plugins
+curl -sSL \
   "https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64" \
-  -o /usr/local/lib/docker/cli-plugins/docker-compose
-sudo chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+  -o ~/.docker/cli-plugins/docker-compose
+chmod +x ~/.docker/cli-plugins/docker-compose
 ```
 
 The `usermod` line only takes effect on a new login, so **close the browser terminal and connect
@@ -72,9 +74,26 @@ docker version
 docker compose version
 ```
 
+> **If pasting mangles the command** — the browser terminal wraps pastes in escape codes and bash
+> shows `$'\E[200~sudo': command not found`. Run `bind 'set enable-bracketed-paste off'` once per
+> session to fix it.
+
 ---
 
-## 4. Deploy the application
+## 4. Add swap, then deploy
+
+A `t3.micro` has 1 GB of RAM and bundling the Angular app needs more than that, so give the build
+some overflow room first. This is a one-off:
+
+```bash
+sudo dd if=/dev/zero of=/swapfile bs=1M count=2048
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+```
+
+`free -h` should now show a 2 GiB `Swap:` row. Then deploy:
 
 ```bash
 git clone https://github.com/Haya-Masabha/car-lookup.git
@@ -94,15 +113,8 @@ curl -s http://localhost/api/vehicles/years | head -c 80   # API through the pro
 
 You want `Up … (healthy)` for both services and `HTTP/1.1 200 OK`.
 
-> **If the build is killed part-way through**, the instance ran out of memory (`t3.micro` has 1 GB,
-> and bundling Angular is the memory-hungry step).
-> Add swap once and rebuild:
->
-> ```bash
-> sudo dd if=/dev/zero of=/swapfile bs=1M count=2048
-> sudo chmod 600 /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile
-> echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
-> ```
+> **If the build is still killed part-way through**, the swap step above was skipped or did not
+> take effect. Check `free -h`, then re-run the build.
 
 ---
 
